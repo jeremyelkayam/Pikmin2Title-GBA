@@ -89,6 +89,9 @@ int main()
 
         for(pikmin& p : pikmin_vec){
             p.update();
+            if(enemy){
+                p.attract_or_repel(enemy);
+            }
         }
 
         if(enemy){

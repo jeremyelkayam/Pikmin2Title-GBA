@@ -5,7 +5,7 @@
 #include "bn_sprite_items_iridescent_flint_beetle.h"
 
 iridescent_flint_beetle::iridescent_flint_beetle(bn::fixed xcor, bn::fixed ycor) : 
-    controllable(bn::sprite_items::iridescent_flint_beetle, xcor, ycor, 2) {    
+    controllable(bn::sprite_items::iridescent_flint_beetle, xcor, ycor, 2, true) {    
 }
 
 void iridescent_flint_beetle::update(){

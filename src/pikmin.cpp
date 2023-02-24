@@ -37,10 +37,8 @@ bool pikmin::at_target(){
 }
 
 void pikmin::point_at_target(){
-    bn::fixed xdist = _target.x() - x();
-    bn::fixed ydist = _target.y() - y();
 
-    _direction = bn::atan2(xdist.ceil_integer(), ydist.ceil_integer());
+    _direction = angle_between_points(position(), _target);
     
     _speed += ACCEL;
     if(_speed > _max_speed) _speed = _max_speed;
@@ -51,8 +49,46 @@ void pikmin::move(){
     set_y(y() + _speed * bn::cos(_direction));
 }
 
-
 void pikmin::stop_blowing(){
     _blow.reset();
     _blowing=false;
+}
+
+void pikmin::attract_or_repel(bn::unique_ptr<controllable> &enemy){
+    if(dist(position(), enemy->position()) < NOTICING_DISTANCE){
+        if(enemy->attractive()){
+            set_target(
+                pos_at_distance_from_target(
+                position(), enemy->position(), 
+                25));
+        }else{
+            set_target(
+                pos_at_distance_from_target(
+                position(), enemy->position(), 
+                100));
+        }
+    }
+}
+
+bn::fixed_point pikmin::pos_at_distance_from_target(bn::fixed_point pos, bn::fixed_point target, bn::fixed desired_dist){
+    bn::fixed full_dist = dist(pos, target);
+    bn::fixed_point x_y_dist = pos - target;
+
+    return target + (x_y_dist * (desired_dist / full_dist));
+
+}
+
+bn::fixed pikmin::angle_between_points(bn::fixed_point pos, bn::fixed_point target){
+    bn::fixed xdist = target.x() - pos.x();
+    bn::fixed ydist = target.y() - pos.y();
+
+    return bn::atan2(xdist.ceil_integer(), ydist.ceil_integer());
+}
+
+//simple euclidean distance
+bn::fixed pikmin::dist(bn::fixed_point a, bn::fixed_point b){
+    bn::fixed xdist = a.x() - b.x();
+    bn::fixed ydist = a.y() - b.y();
+
+    return bn::sqrt(xdist*xdist + ydist*ydist);
 }

@@ -2,10 +2,11 @@
 #include <bn_keypad.h>
 #include <bn_math.h>
 
-controllable::controllable(bn::sprite_item item, bn::fixed xcor, bn::fixed ycor, bn::fixed speed) : 
+controllable::controllable(bn::sprite_item item, bn::fixed xcor, bn::fixed ycor, bn::fixed speed, bool attractive) : 
     _sprite(item.create_sprite(xcor, ycor)),
     _speed(speed),
-    _rotation_angle(0) {    
+    _rotation_angle(0), 
+    _attractive(attractive) {    
 }
 
 void controllable::update(){
