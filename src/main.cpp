@@ -8,7 +8,10 @@
 #include <bn_random.h>
 #include <bn_math.h>
 #include "pikmin.h"
+#include "iridescent_flint_beetle.h"
 #include "bn_sprite_items_redpikmin.h"
+#include "bn_sprite_items_bluepikmin.h"
+#include "bn_sprite_items_yellowpikmin.h"
 //debug settings for emulator
 #define BN_LOG_BACKEND_MGBA true
 #define NUM_PIKMIN 100
@@ -59,7 +62,9 @@ int main()
     bn::core::init();
     bn::vector<pikmin, NUM_PIKMIN> pikmin_vec;
     bn::random rand;
-    
+    bn::unique_ptr<controllable> enemy(new iridescent_flint_beetle(0, 0));
+
+
     for(int z = 0; z < pikmin_vec.max_size(); ++z){
         pikmin_vec.emplace_back(bn::sprite_items::redpikmin, 0, -90, rand);
         pikmin_vec.at(z).set_target(bn::fixed_point(-40 + (z % 10) * 10, -40 + (z / 10) * 10));
@@ -84,8 +89,13 @@ int main()
 
         for(pikmin& p : pikmin_vec){
             p.update();
-            rand.update();
         }
+
+        if(enemy){
+            enemy->update();
+        }
+
+        rand.update();
         bn::core::update();
     }
 }
