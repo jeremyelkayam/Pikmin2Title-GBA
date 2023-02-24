@@ -2,14 +2,16 @@
 #include <bn_log.h>
 
 #include "pikmin.h"
-#include "bn_sprite_items_flower.h"
 
-pikmin::pikmin(bn::fixed xcor, bn::fixed ycor, bn::random &rand) : 
-    _flower(bn::sprite_items::flower.create_sprite(xcor, ycor)),
+pikmin::pikmin(bn::sprite_item item, bn::fixed xcor, bn::fixed ycor, bn::random &rand) : 
+    _flower(item.create_sprite(xcor, ycor)),
+    _blow(bn::create_sprite_animate_action_forever(
+                    _flower, 4, item.tiles_item(), true, 0, 1, 2, 1, 0, 3, 4, 3)),
     _target(xcor, ycor),
     _speed(0),
     _direction(0),
-    _max_speed(rand.get_fixed(MAX_SPEED_MIN, MAX_SPEED_MAX)) {
+    _max_speed(rand.get_fixed(MAX_SPEED_MIN, MAX_SPEED_MAX)),
+    _blowing(false) {
     
 }
 
@@ -20,6 +22,11 @@ void pikmin::update(){
         point_at_target();
     }
     move();
+    if(_blowing){
+        _blow.update();
+    }else if(_blow.current_index() !=0){
+        _blow.update();
+    }
 }
 
 bool pikmin::at_target(){
@@ -42,4 +49,10 @@ void pikmin::point_at_target(){
 void pikmin::move(){
     set_x(x() + _speed * bn::sin(_direction));
     set_y(y() + _speed * bn::cos(_direction));
+}
+
+
+void pikmin::stop_blowing(){
+    _blow.reset();
+    _blowing=false;
 }
