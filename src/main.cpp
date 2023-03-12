@@ -7,6 +7,7 @@
 #include <bn_fixed_rect.h>
 #include <bn_random.h>
 #include <bn_math.h>
+#include <bn_display.h>
 #include "pikmin.h"
 #include "iridescent_flint_beetle.h"
 #include "bn_sprite_items_redpikmin.h"
@@ -30,10 +31,6 @@ void disperse(bn::vector<pikmin, NUM_PIKMIN> &pikmin_vec){
 }
 
 bool point_inside_rect(bn::fixed_point pt, bn::fixed_rect rect){
-    // BN_LOG("rect left: ", rect.left());
-    // BN_LOG("rect right: ", rect.right());
-    // BN_LOG("rect bottom: ", rect.bottom());
-    // BN_LOG("rect top: ", rect.top());
 
     return (pt.x() < rect.right() &&
             pt.x() > rect.left() &&
@@ -41,19 +38,16 @@ bool point_inside_rect(bn::fixed_point pt, bn::fixed_rect rect){
             pt.y() > rect.top() );
 }
 
-void update_wind(bn::fixed_rect &wind_start, bn::fixed_rect &wind_end, bn::vector<pikmin, NUM_PIKMIN> &pikmin_vec){
-
+void update_wind(bn::fixed_rect &windbox, bn::vector<pikmin, NUM_PIKMIN> &pikmin_vec){
     for(pikmin &p : pikmin_vec){
-        if(point_inside_rect(p.position(), wind_start)){
-            BN_LOG("start blowing");
+        if(point_inside_rect(p.position(), windbox)){
             p.start_blowing();
-        }else if(point_inside_rect(p.position(), wind_end)){
+        }else{
             p.stop_blowing();
         }
     }
 
-    wind_start.set_x(wind_start.x() + WINDSPEED);
-    wind_end.set_x(wind_end.x() + WINDSPEED);
+    windbox.set_x(windbox.x() + WINDSPEED);
 }
 
 
@@ -71,21 +65,32 @@ int main()
     }
 
     short time_dispersed=0;
+    unsigned int next_gust = rand.get_int(20*60,60*60);
+    unsigned int timer=0;
 
-    bn::fixed_rect wind_start(-200,0,WINDSPEED,160);
-    bn::fixed_rect wind_end(-200 - WINDWIDTH,0,WINDSPEED,160);    
-
+    bn::optional<bn::fixed_rect> windbox;
+    
     while(true)
-    {
+    {   
+        ++timer;
+        if(timer == next_gust){
+            BN_LOG("windy time");
+            windbox = bn::fixed_rect(-200,0,WINDWIDTH,160);
+            next_gust = timer + rand.get_int(20*60,60*60);
+        }
 
         if(bn::keypad::r_pressed() || bn::keypad::l_pressed()) {
             disperse(pikmin_vec);
-            time_dispersed=1;
         }
 
-        if(time_dispersed) ++time_dispersed;
 
-        update_wind(wind_start, wind_end, pikmin_vec);
+
+        if(windbox){
+            update_wind(*windbox, pikmin_vec);
+            if(windbox->x() > 0 && !windbox->intersects(bn::fixed_rect(0,0,bn::display::width(), bn::display::height()))){
+                windbox.reset();
+            }
+        }
 
         for(pikmin& p : pikmin_vec){
             p.update();
